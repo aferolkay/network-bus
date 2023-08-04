@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #define PORT_NO 7090
+
 using namespace std;
 
 void *receive_messages(void *socket){
@@ -16,9 +17,18 @@ void *receive_messages(void *socket){
     char message[500];
     int message_length;
     while((message_length = recv(busMaster_socket,message,500,0))>0){
-        message[message_length]='\0';
-        fputs(message,stdout);
+
+        char * splitted_message = strtok(message,"||");
+        if( strcmp( splitted_message , "CHECK_STATUS" ) == 0){
+            write(busMaster_socket , message , strlen(message));
+        }
+        else{
+            message[message_length]='\0';
+            fputs(message,stdout);
+        }
         memset(message,'\0',sizeof(message));
+
+
     }
 
 }

@@ -17,12 +17,15 @@ using namespace std;
 
 #define PORT_NUMBER 7090
 #define LOOPBACK_IP "127.0.0.1"
+#define NODE_STATUS_ACTIVE 1
+#define NODE_STATUS_DEACTIVE 0
 
 struct client_info{
     int socket_no; // I guess file descriptor number
     char ip[INET_ADDRSTRLEN];
     int port_number;
     char username[50];
+    bool status;
 
 };
 
@@ -45,5 +48,7 @@ void *receive_message( void *socket );
 void delete_node (int socket_number_to_be_eliminated );
 void add_new_node (struct client_info client);
 char* get_node_list ();
+void rename_node (int socket_number_to_be_renamed, char*username );
+void remove_all_chars(char* str, char c) ;
 
 #endif // SERVER_H_INCLUDED
