@@ -39,11 +39,9 @@ pthread_mutex_t mutex ;
     and sends it to all the clients */
 void send_to_all(char *message , void* current_node_socket);
 
-
 /* wait until receiving message from an socket and
     then distribute it to others    */
 void *receive_message( void *socket );
-
 
 void delete_node (int socket_number_to_be_eliminated );
 void add_new_node (struct client_info client);

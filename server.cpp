@@ -25,17 +25,17 @@ void* status_check(void* arg){
         sleep(10); /* give some time to pulse back */
 
 
-        pthread_mutex_lock(&mutex);
         for(int i=0 ; i<100 ; i++){  /* check if they have regain their status */
-            if(node_numbers[i] != -1 ) {
-                if(node_list[i].status == NODE_STATUS_DEACTIVE){
+            if(node_numbers[i] != -1 ) { /* node exists */
+                if(node_list[i].status == NODE_STATUS_DEACTIVE){ /* node still hasn't responded */
                     char warning_message[100];
                     sprintf(warning_message,"%s(%d) hasn't been responding!\n",node_list[i].username,node_list[i].socket_no);
-                    send_to_all(warning_message , &node_list[i]);
+                    printf("%s !!\n",warning_message);
+                    send_to_all(warning_message , &(node_list[i])) ; // may be problematic, couldn't test properly
                 }
             }
         }
-        pthread_mutex_unlock(&mutex);
+
 
     }
     return NULL;
@@ -149,7 +149,7 @@ void *receive_message( void *socket ){
     sprintf(wrapper , "%s(%d): ", active_client.username , active_client.socket_no  );
 
     /* terminal'e yazılan komutlar burada işlenecek */
-    while( (message_lenght = recv( active_client.socket_no , message , 500 , 0 )) > 0  ){ // içine bence iki kere giriyor. birinde normal olması gereken, ikincisinde boş okuyup yazıyor o sebeple farkedilmiyor
+    while( (message_lenght = recv( active_client.socket_no , message , 500 , 0 )) > 0  ){ 
         if(message_lenght>2){
 
             message[message_lenght] = '\0';
@@ -158,7 +158,13 @@ void *receive_message( void *socket ){
 
             /* echo the status check message back */
             if( strstr( message , "CHECK_STATUS" ) != NULL){
-                active_client.status=NODE_STATUS_ACTIVE;
+
+                for( int i=0 ; i<100 ; i++){
+                    if(node_numbers[i] == active_client.socket_no){ //found an empty place
+                        node_list[i].status=NODE_STATUS_ACTIVE;
+                        break;
+                    }
+                }
                 printf("Heart pulse received back!\n");
             }
 
@@ -318,13 +324,13 @@ int main ( int argc , char* argv[] ){
         perror("busMaster binding is unsuccessful");
         exit(1);
     }
-    if( listen(busMaster_socket , 30) != 0 ){
+    if( listen(busMaster_socket , 100) != 0 ){
         perror("listening unsuccesful");
         exit(1);
     }
 
 
-    //pthread_create(&status_check_thread, nullptr , status_check ,nullptr);
+    pthread_create(&status_check_thread, nullptr , status_check ,nullptr);
 
     while(true){
 
@@ -344,7 +350,6 @@ int main ( int argc , char* argv[] ){
         node_info.socket_no = node_socket;
         printf("%s:%d is trying to connect! \n", node_info.ip , node_info.port_number); // inform the user
         sprintf( node_info.username , "Unknown");
-        node_info.status = NODE_STATUS_ACTIVE;
         node_info.status = NODE_STATUS_ACTIVE;
 
 
